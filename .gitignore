@@ -2,3 +2,4 @@ code/langevin.ipynb
 *.docx
 *.pdf
 *.pth
+*.DS_Store
