@@ -177,7 +177,7 @@ class VPSDE:
         self.beta_0 = beta_0
         self.beta_T = beta_T
         self.T = T
-        self.betas = torch.linspace(beta_0, beta_T, T).to(device)  # discretized
+        self.betas = torch.linspace(beta_0, beta_T, T)  # discretized
         self.alpha = 1 - self.betas
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)
         self.coeff_prev_diffusion = 1 / self.alpha.sqrt()
