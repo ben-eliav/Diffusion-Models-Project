@@ -4,9 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 import abc
 
-## Architecture: (UNET)
-
-
+# copied from paper -- just to understand why mine doesn't work
 class SDE(abc.ABC):
   """SDE abstract class. Functions are designed for a mini-batch of inputs."""
 
@@ -112,7 +110,7 @@ class SDE(abc.ABC):
     return RSDE()
 
 
-class VPSDE(SDE):
+class VPSDE_copy(SDE):
   def __init__(self, beta_min=0.1, beta_max=20, N=1000):
     """Construct a Variance Preserving SDE.
 
@@ -239,3 +237,35 @@ class SDELoss(nn.Module):
         x_t = mean + std * noise
         score_prediction = model(x_t, t)
         return F.mse_loss(score_prediction * std, -noise)
+    
+
+def get_loss_fn(sde, eps=1e-3):
+
+    def loss_fn(model, batch):
+        """Compute the loss function.
+
+        Args:
+            model: A score model.
+            batch: A mini-batch of training data.
+
+        Returns:
+            loss: A scalar that represents the average loss value across the mini-batch.
+        """
+        def score(x, t):
+            label = t * 999
+            score = model(x, label)
+            std = sde.marginal_prob(x, t)[1]
+            return -score / std[:, None, None, None]
+        
+        t = torch.rand(batch.shape[0], device=batch.device) * (sde.T - eps) + eps
+        z = torch.randn_like(batch)
+        mean, std = sde.marginal_prob(batch, t)
+        perturbed_data = mean + std[:, None, None, None] * z
+        score_val = score(perturbed_data, t)
+
+        losses = torch.square(score_val * std[:, None, None, None] + z)
+        losses = torch.mean(losses.reshape(losses.shape[0], -1), dim=-1)
+        loss = torch.mean(losses)
+        return loss
+    
+    return loss_fn

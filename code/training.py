@@ -15,6 +15,7 @@ from generation import *
 ## training loop
 def train(model_config):
     model = UNet(
+        T=model_config["T"],
         ch=model_config["channel"],
         ch_mult=model_config["channel_mult"],
         attn=model_config["attn"],
@@ -22,8 +23,8 @@ def train(model_config):
         dropout=model_config["dropout"]
     ).to(model_config["device"])
 
-    sde = VPSDE(model_config["beta_1"], model_config["beta_T"], model_config["T"])
-    sde_loss = SDELoss(sde)
+    sde = VPSDE_copy()
+    sde_loss = get_loss_fn(sde, 1e-5)
     optimizer = optim.Adam(model.parameters(), lr=model_config["lr"])
     model.train()
 
@@ -60,6 +61,7 @@ def train(model_config):
 ## sampling
 def sample(model_config):
     model = UNet(
+        T=model_config["T"],
         ch=model_config["channel"],
         ch_mult=model_config["channel_mult"],
         attn=model_config["attn"],
