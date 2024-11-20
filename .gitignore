@@ -1,6 +1,10 @@
 code/langevin.ipynb
 *.docx
+*.pptx
 *.pdf
 *.pth
 *.DS_Store
+*.py
 code/cond_refinenet_dilated.py
+check.ipynb
+code/old/
